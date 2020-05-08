@@ -1,0 +1,9 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: Module-2
+Bundle-SymbolicName: module-2
+Bundle-Version: 1.0.0.qualifier
+Automatic-Module-Name: module-2
+Bundle-RequiredExecutionEnvironment: JavaSE-1.8
+Require-Bundle: module-1;bundle-version="1.0.0"
+Export-Package: org.mule.jacoco.ui

@@ -1,0 +1,202 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
+	xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>org.mule.foo</groupId>
+		<artifactId>tooling-parent</artifactId>
+		<version>1.0.0-SNAPSHOT</version>
+	</parent>
+	<artifactId>test-parent</artifactId>
+	<packaging>pom</packaging>
+	<properties>
+		<heapdump.path>${project.build.directory}/heapdump.hprof</heapdump.path>
+		<surefire.argline></surefire.argline>
+		<surefire.memory>-Xms256m -Xmx1024m</surefire.memory>
+		<surefire.base-argline>-XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=${heapdump.path} -Dstudio.test=true</surefire.base-argline>
+		<surefire.useUIHarness>false</surefire.useUIHarness>
+		<surefire.useUIThread>true</surefire.useUIThread>		
+		<surefire.application>org.eclipse.ui.ide.workbench</surefire.application>
+		<test.argLine>${tycho.testArgLine}</test.argLine>
+		<display-number>:0</display-number>
+		<!-- automatically set by one of the OS-specific eclipse.platform profiles -->
+		<eclipse.platform.os.arch></eclipse.platform.os.arch>
+		<org.eclipse.core.filesystem.fragment>org.eclipse.core.filesystem${eclipse.platform.os.arch}</org.eclipse.core.filesystem.fragment>
+		<org.eclipse.core.net.fragment>org.eclipse.core.net${eclipse.platform.os.arch}</org.eclipse.core.net.fragment>
+	</properties>
+
+	<modules>
+		<module>../module-1-tests</module>
+		<module>../module-2-tests</module>
+	</modules>
+
+	<build>
+		<resources>
+			<resource>
+				<directory>resources</directory>
+			</resource>
+		</resources>
+		<plugins>
+			<plugin>
+				<groupId>${tycho.groupid}</groupId>
+				<artifactId>tycho-surefire-plugin</artifactId>
+				<configuration>
+					<failIfNoTests>false</failIfNoTests>
+					<application>${surefire.application}</application>
+					<dependencies>
+						<dependency>
+							<!-- add the equinox.event plugin to the test runtimes, otherwise the UI won't load -->
+							<type>p2-installable-unit</type>
+							<artifactId>org.eclipse.equinox.event</artifactId>
+						</dependency>
+						<!-- add platform-specific fragments (if present) -->
+						<dependency>
+							<type>p2-installable-unit</type>
+							<artifactId>${org.eclipse.core.net.fragment}</artifactId>
+						</dependency>
+						<dependency>
+							<type>p2-installable-unit</type>
+							<artifactId>${org.eclipse.core.filesystem.fragment}</artifactId>
+						</dependency>
+						<dependency>
+							<!-- add the equinox.ds plugin to the test runtimes, otherwise the UI won't load -->
+							<type>p2-installable-unit</type>
+							<artifactId>org.eclipse.equinox.ds</artifactId>
+						</dependency>
+					</dependencies>
+					<argLine>${surefire.memory} ${surefire.base-argline} ${surefire.argline} ${test.argLine}</argLine>
+					<includes>
+						<include>**/*Tests*.java</include>
+						<include>*/Test*.java</include>
+						<include>**/*Test.java</include>
+						<include>**/*TestCase.java</include>
+					</includes>
+					<excludes>
+						<exclude>**/Abstract*Test*.java</exclude>
+						<exclude>**/*Abstract*Test*.java</exclude>
+						<exclude>**/Abstract*TestCase.java</exclude>
+					</excludes>
+					<useUIHarness>${surefire.useUIHarness}</useUIHarness>
+					<useUIThread>${surefire.useUIThread}</useUIThread>
+					<systemProperties>
+						<DISPLAY>${display-number}</DISPLAY>
+						<latest_mule_runtime>${mule.version.number}</latest_mule_runtime>
+						<jdk.http.auth.tunneling.disabledSchemes>""</jdk.http.auth.tunneling.disabledSchemes>
+						<jdk.http.auth.proxying.disabledSchemes>""</jdk.http.auth.proxying.disabledSchemes>
+					</systemProperties>
+					<appArgLine>-consolelog</appArgLine>
+					<!-- 
+					Since we are not running the product, we need to mimic relevant configuration from the product definition file.
+					-->
+					<bundleStartLevel>
+						<bundle>
+							<id>org.mule.tooling.css</id>
+							<!-- Required - so we specify the default start level in Equinox (4) -->
+							<level>4</level>
+							<!-- Or else our custom CSS engine does not get picked by E4 -->
+							<autoStart>true</autoStart>
+						</bundle>
+					</bundleStartLevel> 					
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-install-plugin</artifactId>
+				<version>2.4</version>
+				<inherited>false</inherited>
+				<!-- DO install this parent pom please -->
+				<executions>
+					<execution>
+						<id>default-install</id>
+						<phase>install</phase>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+	</build>
+	<profiles>
+		<profile>
+			<id>dm-test-on-mac-additional-argline</id>
+			<properties>
+				<surefire.base-argline>-XstartOnFirstThread -Dstudio.test=true</surefire.base-argline>
+			</properties>
+			<activation>
+				<os>
+					<family>mac</family>
+				</os>
+			</activation>
+		</profile>
+		<profile>
+			<id>test-on-unix-use-xvfb</id>
+			<activation>
+				<os>
+					<family>unix</family>
+					<name>!mac os x</name>
+				</os>
+			</activation>
+			<build>
+				<pluginManagement>
+					<plugins>
+						<plugin>
+							<groupId>${tycho.groupid}</groupId>
+							<artifactId>tycho-surefire-plugin</artifactId>
+							<configuration>
+								<systemProperties>
+									<DISPLAY>${display-number}</DISPLAY>
+									<latest_mule_runtime>${mule.version.number}</latest_mule_runtime>
+									<jdk.http.auth.tunneling.disabledSchemes>""</jdk.http.auth.tunneling.disabledSchemes>
+									<jdk.http.auth.proxying.disabledSchemes>""</jdk.http.auth.proxying.disabledSchemes>
+								</systemProperties>
+								<environmentVariables>
+									<DISPLAY>${display-number}</DISPLAY>
+									<SWT_GTK3>1</SWT_GTK3>
+								</environmentVariables>
+							</configuration>
+						</plugin>
+					</plugins>
+				</pluginManagement>
+			</build>
+		</profile>
+
+		<!-- These eclipse.platform.<os>.<arch> profiles are automatically set and 
+			used for figuring out platform OS/ARCH suffixes for adding fragment dependencies -->
+		<profile>
+			<id>eclipse.platform.win32.x86_64</id>
+			<activation>
+				<os>
+					<family>windows</family>
+					<arch>amd64</arch>
+				</os>
+			</activation>
+			<properties>
+				<eclipse.platform.os.arch>.win32.x86_64</eclipse.platform.os.arch>
+			</properties>
+		</profile>
+		<profile>
+			<id>eclipse.platform.linux.x86_64</id>
+			<activation>
+				<os>
+					<family>unix</family>
+					<arch>amd64</arch>
+				</os>
+			</activation>
+			<properties>
+				<eclipse.platform.os.arch>.linux.x86_64</eclipse.platform.os.arch>
+			</properties>
+		</profile>
+		<profile>
+			<id>eclipse.platform.macosx</id>
+			<activation>
+				<os>
+					<family>mac</family>
+				</os>
+			</activation>
+			<properties>
+				<eclipse.platform.os.arch>.macosx</eclipse.platform.os.arch>			
+				<!-- No fragment for core.net on MacOSX, provide the host bundle as a no-op -->			
+				<org.eclipse.core.net.fragment>org.eclipse.core.net</org.eclipse.core.net.fragment>
+			</properties>
+		</profile>
+	</profiles>
+</project>

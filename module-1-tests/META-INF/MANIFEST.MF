@@ -1,0 +1,11 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: Module-1-tests
+Bundle-SymbolicName: module-1-tests
+Bundle-Version: 1.0.0.qualifier
+Automatic-Module-Name: module-1-tests
+Bundle-RequiredExecutionEnvironment: JavaSE-1.8
+Require-Bundle: org.junit;bundle-version="4.12.0",
+ org.mockito;bundle-version="1.8.4",
+ org.hamcrest;bundle-version="1.1.0",
+ module-1;bundle-version="1.0.0"
