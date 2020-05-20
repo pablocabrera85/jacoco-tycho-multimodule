@@ -11,14 +11,14 @@
 	<artifactId>test-parent</artifactId>
 	<packaging>pom</packaging>
 	<properties>
+		<aspectj.version>1.8.10</aspectj.version>
 		<heapdump.path>${project.build.directory}/heapdump.hprof</heapdump.path>
-		<surefire.argline></surefire.argline>
+		<surefire.argline>-javaagent:${settings.localRepository}/org/aspectj/aspectjweaver/${aspectj.version}/aspectjweaver-${aspectj.version}.jar</surefire.argline>
 		<surefire.memory>-Xms256m -Xmx1024m</surefire.memory>
 		<surefire.base-argline>-XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=${heapdump.path} -Dstudio.test=true</surefire.base-argline>
 		<surefire.useUIHarness>false</surefire.useUIHarness>
 		<surefire.useUIThread>true</surefire.useUIThread>		
-		<surefire.application>org.eclipse.ui.ide.workbench</surefire.application>
-		<test.argLine>${tycho.testArgLine}</test.argLine>
+		<surefire.application>org.eclipse.ui.ide.workbench</surefire.application>		
 		<display-number>:0</display-number>
 		<!-- automatically set by one of the OS-specific eclipse.platform profiles -->
 		<eclipse.platform.os.arch></eclipse.platform.os.arch>
@@ -44,6 +44,9 @@
 				<configuration>
 					<failIfNoTests>false</failIfNoTests>
 					<application>${surefire.application}</application>
+					<providerProperties>
+						<listener>io.qameta.allure.junit4.AllureJunit4</listener>
+					</providerProperties>
 					<dependencies>
 						<dependency>
 							<!-- add the equinox.event plugin to the test runtimes, otherwise the UI won't load -->
@@ -65,7 +68,7 @@
 							<artifactId>org.eclipse.equinox.ds</artifactId>
 						</dependency>
 					</dependencies>
-					<argLine>${surefire.memory} ${surefire.base-argline} ${surefire.argline} ${test.argLine}</argLine>
+					<argLine>${surefire.memory} ${surefire.base-argline} ${surefire.argline}</argLine>
 					<includes>
 						<include>**/*Tests*.java</include>
 						<include>*/Test*.java</include>
@@ -84,21 +87,24 @@
 						<latest_mule_runtime>${mule.version.number}</latest_mule_runtime>
 						<jdk.http.auth.tunneling.disabledSchemes>""</jdk.http.auth.tunneling.disabledSchemes>
 						<jdk.http.auth.proxying.disabledSchemes>""</jdk.http.auth.proxying.disabledSchemes>
+						<allure.results.directory>${project.build.directory}/../../target/allure-results</allure.results.directory>
 					</systemProperties>
 					<appArgLine>-consolelog</appArgLine>
-					<!-- 
-					Since we are not running the product, we need to mimic relevant configuration from the product definition file.
-					-->
-					<bundleStartLevel>
-						<bundle>
-							<id>org.mule.tooling.css</id>
-							<!-- Required - so we specify the default start level in Equinox (4) -->
-							<level>4</level>
-							<!-- Or else our custom CSS engine does not get picked by E4 -->
-							<autoStart>true</autoStart>
-						</bundle>
-					</bundleStartLevel> 					
+					<dependencies>
+						<dependency>
+							<type>eclipse-plugin</type>
+							<artifactId>allure-bundle</artifactId>
+							<version>0.0.0</version>
+						</dependency>
+					</dependencies>
 				</configuration>
+				<dependencies>
+					<dependency>
+						<groupId>org.aspectj</groupId>
+						<artifactId>aspectjweaver</artifactId>
+						<version>${aspectj.version}</version>
+					</dependency>
+				</dependencies>
 			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
@@ -113,6 +119,10 @@
 					</execution>
 				</executions>
 			</plugin>
+			<plugin>
+                <groupId>io.qameta.allure</groupId>
+                <artifactId>allure-maven</artifactId>
+            </plugin>
 		</plugins>
 	</build>
 	<profiles>

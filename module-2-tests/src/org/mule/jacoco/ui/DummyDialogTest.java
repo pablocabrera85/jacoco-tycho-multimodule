@@ -6,6 +6,9 @@ import static org.junit.Assert.assertNotEquals;
 import org.junit.Test;
 import org.mule.jacoco.DummyClass;
 
+import io.qameta.allure.Story;
+
+@Story("MyStory2")
 public class DummyDialogTest {
 
     @Test

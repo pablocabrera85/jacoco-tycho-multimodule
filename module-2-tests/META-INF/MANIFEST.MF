@@ -7,5 +7,5 @@ Automatic-Module-Name: module-2-tests
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Require-Bundle: module-2;bundle-version="1.0.0",
  org.junit;bundle-version="4.12.0",
- org.hamcrest;bundle-version="1.1.0"
+ allure-bundle
 Import-Package: org.mule.jacoco
